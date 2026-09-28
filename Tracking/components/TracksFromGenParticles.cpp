@@ -381,14 +381,13 @@ struct TracksFromGenParticles final
             }
           }
 
-          // store extrapolation to calo
-          // by default, store extrapolation with lower arrival time
-          // get extrapolated position
-          edm4hep::TrackState trackState_AtCalorimeter =
-              getExtrapolationAtCalorimeter(bestECalProjection, helixAtLastHit, m_Bz);
-
-          // attach the TrackState to the track
-          trackFromGen.addToTrackStates(trackState_AtCalorimeter);
+          // A detector may have only a barrel or only an endcap. Do not create a
+          // calorimeter state at the origin when neither surface was reached.
+          if (hasBarrelProjection || hasEndCapProjection) {
+            edm4hep::TrackState trackState_AtCalorimeter =
+                getExtrapolationAtCalorimeter(bestECalProjection, helixAtLastHit, m_Bz);
+            trackFromGen.addToTrackStates(trackState_AtCalorimeter);
+          }
 
           // attach second extrapolation if desired
           if (!m_keepOnlyBestExtrapolation and hasBarrelProjection and hasEndCapProjection) {
@@ -423,12 +422,12 @@ private:
   float m_Bz;
 
   /// ECAL barrel and endcap extent, to be retrieved from detector
-  float m_eCalBarrelInnerR;
-  float m_eCalBarrelMaxZ;
-  float m_eCalEndCapInnerR;
-  float m_eCalEndCapOuterR;
-  float m_eCalEndCapInnerZ;
-  float m_eCalEndCapOuterZ;
+  float m_eCalBarrelInnerR = 0.f;
+  float m_eCalBarrelMaxZ = 0.f;
+  float m_eCalEndCapInnerR = 0.f;
+  float m_eCalEndCapOuterR = 0.f;
+  float m_eCalEndCapInnerZ = 0.f;
+  float m_eCalEndCapOuterZ = 0.f;
 
   /// Configurable property to decide whether to calculate track state at ECAL or not
   Gaudi::Property<bool> m_extrapolateToECal{this, "ExtrapolateToECal", false,
